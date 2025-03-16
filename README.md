@@ -1,4 +1,4 @@
-# laminas-db-paginator-adapter
+# laminas-db-validator
 
 > ## 🇷🇺 Русским гражданам
 >
@@ -16,19 +16,17 @@
 >
 > You trust us enough to use our software. We ask that you trust us to say the truth on this. We need your help. Go out and protest this unnecessary war. Stop the bloodshed. Say "stop the war!"
 
-This library provides two adapters for [laminas/laminas-paginator](https://docs.laminas.dev/lmainas-paginator):
+This library provides db-related validators for [laminas/laminas-validator](https://docs.laminas.dev/laminas-validator):
 
-- `Laminas\Db\Paginator\Adapter\SelectAdapter`
-- `Laminas\Db\Paginator\Adapter\TableGatewayAdapter`
-
-These provide pagination support for [laminas/laminas-db](https://docs.laminas.dev/laminas-db/) SQL select and TableGateway features.
+- `Laminas\Db\Validator\Db\RecordExists`
+- `Laminas\Db\Validator\Db\NoRecordExists`
 
 ## Installation
 
 Run the following to install this library:
 
 ```bash
-$ composer require axleus/laminas-db-paginator-adapter
+$ composer require axleus/laminas-db-validator
 ```
 
 ## Documentation
