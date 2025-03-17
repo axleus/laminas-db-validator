@@ -1,0 +1,76 @@
+{
+    "name": "axleus/laminas-db-validator",
+    "description": "laminas-db validators for laminas-validator.",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "laminas",
+        "validator",
+        "db"
+    ],
+    "homepage": "https://github.com/axleus/laminas-db-validator/discussions",
+    "support": {
+        "issues": "https://github.com/axleus/laminas-db-validator/issues",
+        "source": "https://github.com/axleus/laminas-db-validator",
+        "forum": "https://github.com/axleus/laminas-db-validator/discussions"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.1.99"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "extra": {
+        "laminas": {
+            "component": "Laminas\\Db\\Mysql",
+            "config-provider": "Laminas\\Db\\Mysql\\ConfigProvider"
+        }
+    },
+    "require": {
+        "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
+        "laminas/laminas-servicemanager": "^4.1.0",
+        "laminas/laminas-validator": "^3.0.0",
+        "laminas/laminas-db": "^2.20.0",
+        "laminas/laminas-translator": "^1.0",
+        "psr/container": "^1.1 || ^2.0"
+    },
+    "require-dev": {
+        "laminas/laminas-coding-standard": "^3.0.1",
+        "phpunit/phpunit": "^10.5.0",
+        "psalm/plugin-phpunit": "^0.19.0",
+        "vimeo/psalm": "^5.0.0"
+    },
+    "suggest": {
+        "laminas/laminas-i18n": "Laminas\\I18n component to allow translation of validation error messages",
+        "laminas/laminas-i18n-resources": "Translations of validator messages",
+        "laminas/laminas-servicemanager": "Laminas\\ServiceManager component"
+    },
+    "autoload": {
+        "psr-4": {
+            "Laminas\\Db\\Validator\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LaminasTest\\Db\\Validator\\": "test/unit/",
+            "LaminasIntegrationTest\\Db\\Validator\\": "test/integration/"
+        }
+    },
+    "scripts": {
+        "check": [
+            "@cs-check",
+            "@test"
+        ],
+        "cs-check": "phpcs",
+        "cs-fix": "phpcbf",
+        "test": "phpunit --colors=always --testsuite \"unit test\"",
+        "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
+        "test-integration": "phpunit --colors=always --testsuite \"integration test\"",
+        "static-analysis": "psalm --shepherd --stats",
+        "upload-coverage": "coveralls -v"
+    }
+}
