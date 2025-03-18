@@ -11,6 +11,7 @@ use Laminas\Db\Adapter\Driver\StatementInterface;
 use Laminas\Db\Adapter\ParameterContainer;
 use Laminas\Db\Validator\NoRecordExists;
 use Laminas\Validator\Exception\RuntimeException;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use TypeError;
@@ -23,9 +24,10 @@ class NoRecordExistsTest extends TestCase
     /**
      * Return a Mock object for a Db result with rows
      *
+     * @throws Exception
      * @return Adapter
      */
-    protected function getMockHasResult()
+    protected function getMockHasResult(): Adapter
     {
         // mock the adapter, driver, and parts
         $mockConnection = $this->createMock(ConnectionInterface::class);
@@ -64,9 +66,10 @@ class NoRecordExistsTest extends TestCase
     /**
      * Return a Mock object for a Db result without rows
      *
+     * @throws Exception
      * @return Adapter
      */
-    protected function getMockNoResult()
+    protected function getMockNoResult(): Adapter
     {
         // mock the adapter, driver, and parts
         $mockConnection = $this->createMock(ConnectionInterface::class);
@@ -101,12 +104,14 @@ class NoRecordExistsTest extends TestCase
     public function testNoRecordExistsConstructorArray(): void
     {
         $this->expectException(TypeError::class);
+        /** @psalm-suppress InvalidArgument */
         new NoRecordExists('users');
     }
 
     /**
      * Test basic function of RecordExists (no exclusion)
      *
+     * @throws Exception
      * @return void
      */
     public function testBasicFindsRecord()
@@ -122,6 +127,9 @@ class NoRecordExistsTest extends TestCase
     /**
      * Test basic function of RecordExists (no exclusion)
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testBasicFindsNoRecord()
@@ -137,6 +145,9 @@ class NoRecordExistsTest extends TestCase
     /**
      * Test the exclusion function
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithArray()
@@ -144,7 +155,7 @@ class NoRecordExistsTest extends TestCase
         $validator = new NoRecordExists([
             'table' => 'users',
             'field' => 'field1',
-            'excludes' => [
+            'exclude' => [
                 'field' => 'id',
                 'value' => 1
             ],
@@ -157,6 +168,9 @@ class NoRecordExistsTest extends TestCase
      * Test the exclusion function
      * with an array
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithArrayNoRecord()
@@ -164,7 +178,7 @@ class NoRecordExistsTest extends TestCase
         $validator = new NoRecordExists([
             'table' => 'users',
             'field' => 'users',
-            'excludes' => [
+            'exclude' => [
                 'field' => 'id',
                 'value' => 1
             ],
@@ -177,6 +191,9 @@ class NoRecordExistsTest extends TestCase
      * Test the exclusion function
      * with a string
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithString()
@@ -184,7 +201,7 @@ class NoRecordExistsTest extends TestCase
         $validator = new NoRecordExists([
             'table' => 'users',
             'field' => 'users',
-            'excludes' => 'id != 1',
+            'exclude' => 'id != 1',
             'adapter' => $this->getMockHasResult()
         ]);
         $this->assertFalse($validator->isValid('value3'));
@@ -194,6 +211,9 @@ class NoRecordExistsTest extends TestCase
      * Test the exclusion function
      * with a string
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithStringNoRecord()
@@ -201,7 +221,7 @@ class NoRecordExistsTest extends TestCase
         $validator = new NoRecordExists([
             'table' => 'users',
             'field' => 'users',
-            'excludes' => 'id != 1',
+            'exclude' => 'id != 1',
             'adapter' => $this->getMockNoResult()
         ]);
         $this->assertTrue($validator->isValid('nosuchvalue'));
@@ -218,7 +238,7 @@ class NoRecordExistsTest extends TestCase
         $validator = new NoRecordExists([
             'table' => 'users',
             'field' => 'users',
-            'excludes' => 'id != 1'
+            'exclude' => 'id != 1'
         ]);
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('No database adapter present');
@@ -228,6 +248,9 @@ class NoRecordExistsTest extends TestCase
     /**
      * Test that schemas are supported and run without error
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testWithSchema()
@@ -244,6 +267,9 @@ class NoRecordExistsTest extends TestCase
     /**
      * Test that schemas are supported and run without error
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testWithSchemaNoResult()
@@ -266,6 +292,7 @@ class NoRecordExistsTest extends TestCase
 
         $reflectedClass = new ReflectionClass($validator);
         $reflectionProperty = $reflectedClass->getProperty('messageTemplates');
+        /** @psalm-suppress UnusedMethodCall */
         $reflectionProperty->setAccessible(true);
 
         $messageTemplates = [

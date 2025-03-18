@@ -1,18 +1,15 @@
 docs_dir: docs/book
 site_dir: docs/html
 nav:
-    - Home: index.md
+    - Home: v3/index.md
     - v3:
-      - Introduction: v3/intro.md
-      - "DbSelect Adapter": v3/db-select.md
-      - "DbTableGateway Adapter": v3/db-table-gateway.md
+      - "RecordExists/NoRecordExists": v3/exists.md
 site_name: 'laminas-db-validator'
 site_description: 'laminas-db validators for laminas-validator'
 repo_url: 'https://github.com/axleus/laminas-db-validator'
 extra:
     project: Components
     installation:
-        config_provider_class: 'Laminas\Db\Validator\ConfigProvider'
         module_class: 'Laminas\Db\Validator\Module'
     current_version: v3
     versions:

@@ -15,6 +15,7 @@ use Laminas\Db\Sql\TableIdentifier;
 use Laminas\Db\Validator\RecordExists;
 use Laminas\Validator\Exception\RuntimeException;
 use LaminasTest\Db\Validator\TestAsset\TrustingSql92Platform;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use TypeError;
@@ -27,9 +28,15 @@ class RecordExistsTest extends TestCase
     /**
      * Return a Mock object for a Db result with rows
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return Adapter
      */
-    protected function getMockHasResult()
+    protected function getMockHasResult(): Adapter
     {
         // mock the adapter, driver, and parts
         $mockConnection = $this->createMock(ConnectionInterface::class);
@@ -64,9 +71,15 @@ class RecordExistsTest extends TestCase
     /**
      * Return a Mock object for a Db result without rows
      *
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
+     * @throws Exception
      * @return Adapter
      */
-    protected function getMockNoResult()
+    protected function getMockNoResult(): Adapter
     {
         // mock the adapter, driver, and parts
         $mockConnection = $this->createMock(ConnectionInterface::class);
@@ -101,6 +114,8 @@ class RecordExistsTest extends TestCase
 
     /**
      * Test to ensure constructor options are passed as array
+     *
+     * @psalm-suppress InvalidArgument
      */
     public function testRecordExistsConstructorArray(): void
     {
@@ -111,6 +126,8 @@ class RecordExistsTest extends TestCase
     /**
      * Test basic function of RecordExists (no exclusion)
      *
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testBasicFindsRecord()
@@ -126,6 +143,8 @@ class RecordExistsTest extends TestCase
     /**
      * Test basic function of RecordExists (no exclusion)
      *
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testBasicFindsNoRecord()
@@ -141,6 +160,8 @@ class RecordExistsTest extends TestCase
     /**
      * Test the exclusion function
      *
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithArray()
@@ -161,6 +182,8 @@ class RecordExistsTest extends TestCase
      * Test the exclusion function
      * with an array
      *
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithArrayNoRecord()
@@ -181,6 +204,8 @@ class RecordExistsTest extends TestCase
      * Test the exclusion function
      * with a string
      *
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithString()
@@ -198,6 +223,8 @@ class RecordExistsTest extends TestCase
      * Test the exclusion function
      * with a string
      *
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testExcludeWithStringNoRecord()
@@ -205,7 +232,7 @@ class RecordExistsTest extends TestCase
         $validator = new RecordExists([
             'table' =>'users',
             'field' => 'field1',
-            'excludes' => 'id != 1',
+            'exclude' => 'id != 1',
             'adapter' => $this->getMockNoResult()
         ]);
         $this->assertFalse($validator->isValid('nosuchvalue'));
@@ -213,13 +240,14 @@ class RecordExistsTest extends TestCase
 
     /**
      * @group Laminas-8863
+     * @throws Exception
      */
     public function testExcludeConstructor(): void
     {
         $validator = new RecordExists([
             'table' =>'users',
             'field' => 'field1',
-            'excludes' => 'id != 1',
+            'exclude' => 'id != 1',
             'adapter' => $this->getMockHasResult()
         ]);
         $this->assertTrue($validator->isValid('value3'));
@@ -236,7 +264,7 @@ class RecordExistsTest extends TestCase
         $validator = new RecordExists([
             'table' => 'users',
             'field' => 'field1',
-            'excludes' => 'id != 1'
+            'exclude' => 'id != 1'
         ]);
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('No database adapter present');
@@ -246,6 +274,8 @@ class RecordExistsTest extends TestCase
     /**
      * Test that schemas are supported and run without error
      *
+     * @throws Exception
+     * @throws Exception
      * @return void
      */
     public function testWithSchema()
@@ -261,6 +291,8 @@ class RecordExistsTest extends TestCase
 
     /**
      * Test that schemas are supported and run without error
+     *
+     * @throws Exception
      */
     public function testWithSchemaNoResult(): void
     {
@@ -276,6 +308,8 @@ class RecordExistsTest extends TestCase
     /**
      * Test that the supplied table and schema are successfully passed to the select
      * statement
+     *
+     * @throws Exception
      */
     public function testSelectAcknowledgesTableAndSchema(): void
     {
@@ -299,6 +333,7 @@ class RecordExistsTest extends TestCase
 
         $reflectedClass = new ReflectionClass($validator);
         $reflectionProperty = $reflectedClass->getProperty('messageTemplates');
+        /** @psalm-suppress UnusedMethodCall */
         $reflectionProperty->setAccessible(true);
 
         $messageTemplates = [
@@ -311,6 +346,8 @@ class RecordExistsTest extends TestCase
 
     /**
      * @testdox Laminas\Db\Validator\RecordExists::getSelect
+     * @throws Exception
+     * @throws Exception
      */
     public function testGetSelect(): void
     {
@@ -333,14 +370,19 @@ class RecordExistsTest extends TestCase
 
         $sql        = new Sql($this->getMockHasResult());
         $statement  = $sql->prepareStatementForSqlObject($select);
+        $this->assertNotNUll($statement);
+
         $parameters = $statement->getParameterContainer();
-        $this->assertEquals($parameters['where1'], '');
-        $this->assertEquals($parameters['where2'], 'bar');
+        $this->assertNotNUll($parameters);
+
+        $this->assertEquals('', $parameters['where1']);
+        $this->assertEquals('bar', $parameters['where2']);
     }
 
     /**
      * @cover Laminas\Db\Validator\RecordExists::getSelect
      * @group Laminas-4521
+     * @throws Exception
      */
     public function testGetSelectWithSameValidatorTwice(): void
     {

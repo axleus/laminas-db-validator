@@ -89,27 +89,14 @@ class AbstractDbTest extends TestCase
 
     /**
      * @group #46
-     */
-    public function testImplementationsAreDbAdapterAware(): void
-    {
-        $this->assertInstanceOf(AdapterAwareInterface::class, $this->validator);
-    }
-
-    /**
-     * @group #46
      * @throws Exception
      */
     public function testSetAdapterIsEquivalentToSetDbAdapter(): void
     {
         $adapterFirst  = $this->createStub(Adapter::class);
-        $adapterSecond = $this->createStub(Adapter::class);
 
         $this->validator->setAdapter($adapterFirst);
         $this->assertTrue(property_exists($this->validator, 'adapter'));
         $this->assertEquals($adapterFirst, $this->validator->getAdapter());
-
-        $this->validator->setDbAdapter($adapterSecond);
-        $this->assertTrue(property_exists($this->validator, 'adapter'));
-        $this->assertEquals($adapterSecond, $this->validator->getAdapter());
     }
 }

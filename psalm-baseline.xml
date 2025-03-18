@@ -5,70 +5,14 @@
       <code><![CDATA[Module]]></code>
     </UnusedClass>
   </file>
-  <file src="src/SelectFactory.php">
-    <PossiblyUnusedParam>
-      <code><![CDATA[$container]]></code>
-    </PossiblyUnusedParam>
-    <ArgumentTypeCoercion>
-      <code><![CDATA[$requestedName]]></code>
-    </ArgumentTypeCoercion>
+  <file src="src/RecordExists.php">
+    <MixedAssignment>
+      <code><![CDATA[$result]]></code>
+    </MixedAssignment>
   </file>
-  <file src="src/TableGatewayFactory.php">
-    <PossiblyUnusedParam>
-      <code><![CDATA[$container]]></code>
-    </PossiblyUnusedParam>
-    <ArgumentTypeCoercion>
-      <code><![CDATA[$requestedName]]></code>
-    </ArgumentTypeCoercion>
-  </file>
-  <file src="test/DbSelectTest.php">
-    <InternalMethod>
-      <code><![CDATA[getArrayCopy]]></code>
-    </InternalMethod>
-    <PossiblyInvalidArgument>
-      <code><![CDATA[$this->mockSelect]]></code>
-      <code><![CDATA[$this->mockSelect]]></code>
-      <code><![CDATA[$this->mockSelect]]></code>
-      <code><![CDATA[$this->mockSelect]]></code>
-      <code><![CDATA[$this->mockSelectCount]]></code>
-      <code><![CDATA[$this->mockSelectCount]]></code>
-      <code><![CDATA[$this->mockSql]]></code>
-      <code><![CDATA[$this->mockSql]]></code>
-      <code><![CDATA[$this->mockSql]]></code>
-      <code><![CDATA[$this->mockSql]]></code>
-    </PossiblyInvalidArgument>
-    <PossiblyUndefinedMethod>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-    </PossiblyUndefinedMethod>
-  </file>
-  <file src="test/DbTableGatewayTest.php">
-    <PossiblyInvalidArgument>
-      <code><![CDATA[$this->mockTableGateway]]></code>
-      <code><![CDATA[$this->mockTableGateway]]></code>
-      <code><![CDATA[$this->mockTableGateway]]></code>
-      <code><![CDATA[$this->mockTableGateway]]></code>
-      <code><![CDATA[$this->mockTableGateway]]></code>
-    </PossiblyInvalidArgument>
-    <PossiblyUndefinedMethod>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-      <code><![CDATA[expects]]></code>
-    </PossiblyUndefinedMethod>
-    <DeprecatedMethod>
-      <code><![CDATA[getMockForAbstractClass]]></code>
-      <code><![CDATA[getMockForAbstractClass]]></code>
-    </DeprecatedMethod>
+  <file src="src/NoRecordExists.php">
+    <MixedAssignment>
+      <code><![CDATA[$result]]></code>
+    </MixedAssignment>
   </file>
 </files>

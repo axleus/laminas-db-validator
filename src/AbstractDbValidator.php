@@ -4,8 +4,8 @@ namespace Laminas\Db\Validator;
 
 use Closure;
 use Laminas\Db\Adapter\AdapterInterface;
-use Laminas\Db\Adapter\AdapterAwareInterface;
-use Laminas\Db\Adapter\AdapterAwareTrait;
+use Laminas\Db\Adapter\Driver\ResultInterface;
+use Laminas\Db\Adapter\Driver\StatementInterface;
 use Laminas\Db\Sql\Predicate\PredicateInterface;
 use Laminas\Db\Sql\Select;
 use Laminas\Db\Sql\Sql;
@@ -35,10 +35,8 @@ use function is_array;
  * valueObscured?: bool,
  * }
  */
-abstract class AbstractDbValidator extends AbstractValidator implements AdapterAwareInterface
+abstract class AbstractDbValidator extends AbstractValidator
 {
-    use AdapterAwareTrait;
-
     /**
      * Error constants
      */
@@ -50,6 +48,9 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
         self::ERROR_NO_RECORD_FOUND => 'No record matching the input was found',
         self::ERROR_RECORD_FOUND    => 'A record matching the input was found',
     ];
+
+    /** @var null|AdapterInterface */
+    protected ?AdapterInterface $adapter = null;
 
     /**
      * Select object to use. can be set, or will be auto-generated
@@ -73,14 +74,13 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
     /**
      * Provides basic configuration for use with Laminas\Validator\Db Validators
      * Setting $exclude allows a single record to be excluded from matching.
-     * Exclude can either be a String containing a where clause, or an array with `field` and `value` keys
-     * to define the where clause added to the sql.
-     * A database adapter may optionally be supplied to avoid using the registered default adapter.
+     *
      * The following option keys are supported:
      * 'table'   => The database table to validate against
      * 'schema'  => The schema keys
      * 'field'   => The field to check for a match
      * 'exclude' => An optional where clause or field/value pair to exclude from the query
+     * 'select' => An optional Select instance to use
      * 'adapter' => An optional database adapter to use
      *
      * @param OptionsArgument $options = []
@@ -166,7 +166,7 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
      */
     public function setAdapter(AdapterInterface $adapter): self
     {
-        $this->setDbAdapter($adapter);
+        $this->adapter = $adapter;
         return $this;
     }
 
@@ -310,19 +310,29 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
      * Run query and returns matches, or null if no matches are found.
      *
      * @param string $value
-     * @return array|null when matches are found.
+     * @return mixed when matches are found.
      */
-    protected function query(string $value) : ?iterable
+    protected function query(string $value) : mixed
     {
-        $sql                  = new Sql($this->getAdapter());
-        $statement            = $sql->prepareStatementForSqlObject($this->getSelect());
-        $parameters           = $statement->getParameterContainer();
+        if ($this->adapter === null) {
+            throw new Exception\RuntimeException('No database adapter present');
+        }
 
+        $sql                  = new Sql($this->adapter);
+        $statement            = $sql->prepareStatementForSqlObject($this->getSelect());
+        if (! $statement instanceof StatementInterface) {
+            throw new Exception\RuntimeException('No valid statement present');
+        }
+
+        $parameters           = $statement->getParameterContainer();
         if ($parameters !== null) {
             $parameters['where1'] = $value;
         }
 
         $result               = $statement->execute();
+        if (! $result instanceof ResultInterface) {
+            throw new Exception\RuntimeException('No database adapter present');
+        }
 
         return $result->current();
     }
