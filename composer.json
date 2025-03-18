@@ -40,7 +40,7 @@
     "require-dev": {
         "axleus/laminas-db": "3.0.x-dev",
         "laminas/laminas-coding-standard": "^3.0.1",
-        "phpunit/phpunit": "^10.5.0",
+        "phpunit/phpunit": "^12.0.0",
         "psalm/plugin-phpunit": "^0.19.0",
         "vimeo/psalm": "^5.0.0"
     },
