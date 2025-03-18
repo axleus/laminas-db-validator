@@ -99,7 +99,7 @@ class NoRecordExistsTest extends TestCase
     }
 
     /**
-     * Test to ensure constructor options are passed as array
+     * Test to ensure constructor options are passed as array.
      */
     public function testNoRecordExistsConstructorArray(): void
     {
