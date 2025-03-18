@@ -2,6 +2,7 @@
 
 namespace Laminas\Db\Validator;
 
+use Closure;
 use Laminas\Db\Adapter\AdapterInterface;
 use Laminas\Db\Adapter\AdapterAwareInterface;
 use Laminas\Db\Adapter\AdapterAwareTrait;
@@ -9,6 +10,7 @@ use Laminas\Db\Sql\Predicate\PredicateInterface;
 use Laminas\Db\Sql\Select;
 use Laminas\Db\Sql\Sql;
 use Laminas\Db\Sql\TableIdentifier;
+use Laminas\Db\Sql\Where;
 use Laminas\Translator\TranslatorInterface;
 use Laminas\Validator\AbstractValidator;
 use Laminas\Validator\Exception;
@@ -21,11 +23,11 @@ use function is_array;
  * Class for Database record validation
  * @psalm-type OptionsArgument = array{
  * adapter?: AdapterInterface,
- * select?: string|array|PredicateInterface,
+ * select?: string|array|Select,
  * table?: string,
  * schema?: string,
  * field?: string,
- * exclude?: string|array|Select,
+ * exclude?: array|Closure|PredicateInterface|Where|string,
  * messages?: array<string, string>,
  * translator?: TranslatorInterface|null,
  * translatorTextDomain?: string|null,
@@ -52,9 +54,9 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
     /**
      * Select object to use. can be set, or will be auto-generated
      *
-     * @var null|PredicateInterface
+     * @var null|Select
      */
-    protected ?PredicateInterface $select = null;
+    protected ?Select $select = null;
 
     /** @var null|string */
     protected ?string $schema = null;
@@ -65,8 +67,8 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
     /** @var string */
     protected string $field = '';
 
-    /** @var mixed */
-    protected mixed $exclude = null;
+    /** @var array|Closure|PredicateInterface|Where|string|null */
+    protected array|Closure|PredicateInterface|Where|string|null $exclude = null;
 
     /**
      * Provides basic configuration for use with Laminas\Validator\Db Validators
@@ -91,7 +93,8 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
                 case 'table':
                 case 'schema':
                     unset($options[$property]);
-                    $this->setTable($value);
+                    $method = 'set' . ucfirst($property);
+                    $this->$method($value);
                     break;
 
                 case 'field':
@@ -103,8 +106,14 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
                     break;
 
                 case 'exclude':
-                    if (! is_string($value) && ! is_array($value) && ! $value instanceof Select) {
-                        throw new InvalidArgumentException('Exclude option must be a string, array, or Select object.');
+                    if (!is_array($value) &&
+                        !$value instanceof Closure &&
+                        !$value instanceof PredicateInterface &&
+                        !is_string($value)
+                    ) {
+                        throw new InvalidArgumentException(
+                            'Exclude option must be a string, array, Closure or PredicateInterface object.'
+                        );
                     }
                     unset($options[$property]);
                     $this->setExclude($value);
@@ -128,8 +137,12 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
             }
         }
 
-        if ($this->getTable() === '' && $this->getField() === '') {
+        if ($this->getTable() === '' && $this->getSchema() === null) {
             throw new Exception\InvalidArgumentException('Table or Schema option missing.');
+        }
+
+        if ($this->getField() === '') {
+            throw new Exception\InvalidArgumentException('Field option missing.');
         }
 
         parent::__construct($options);
@@ -160,9 +173,9 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
     /**
      * Returns the set exclude clause
      *
-     * @return array|string|PredicateInterface|null
+     * @return array|Closure|PredicateInterface|Where|string|null
      */
-    public function getExclude(): array|string|PredicateInterface|null
+    public function getExclude(): array|Closure|PredicateInterface|Where|string|null
     {
         return $this->exclude;
     }
@@ -170,10 +183,10 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
     /**
      * Sets a new exclude clause
      *
-     * @param array|string|PredicateInterface|null $exclude
+     * @param array|Closure|PredicateInterface|Where|string|null $exclude
      * @return $this Provides a fluent interface
      */
-    public function setExclude(array|string|PredicateInterface|null $exclude): self
+    public function setExclude(array|Closure|PredicateInterface|Where|string|null $exclude): self
     {
         $this->exclude = $exclude;
         $this->select  = null;
@@ -276,7 +289,7 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
         $select          = new Select();
         $tableIdentifier = new TableIdentifier($this->table, $this->schema);
         $select->from($tableIdentifier)->columns([$this->field]);
-        $select->where->isNull($this->field);
+        $select->where->equalTo($this->field, '');
 
         $exclude = $this->getExclude();
         if ($exclude !== null) {
@@ -285,10 +298,8 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
                     (string) $exclude['field'],
                     (string) $exclude['value']
                 );
-            } elseif ($exclude instanceof PredicateInterface) {
-                $select->where($exclude);
             } else {
-                $select->where($this->exclude);
+                $select->where($exclude);
             }
         }
 
@@ -301,7 +312,7 @@ abstract class AbstractDbValidator extends AbstractValidator implements AdapterA
      * @param string $value
      * @return array|null when matches are found.
      */
-    protected function query(string $value) : ?array
+    protected function query(string $value) : ?iterable
     {
         $sql                  = new Sql($this->getAdapter());
         $statement            = $sql->prepareStatementForSqlObject($this->getSelect());
