@@ -14,6 +14,7 @@ final class RecordExists extends AbstractDbValidator
      * @param mixed $value
      * @return bool
      */
+    #[\Override]
     public function isValid(mixed $value): bool
     {
         /*

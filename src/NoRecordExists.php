@@ -13,6 +13,7 @@ final class NoRecordExists extends AbstractDbValidator
      * @param mixed $value
      * @return bool
      */
+    #[\Override]
     public function isValid(mixed $value): bool
     {
         /*

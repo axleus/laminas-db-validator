@@ -23,7 +23,7 @@ use TypeError;
 /**
  * @group      Laminas_Validator
  */
-class RecordExistsTest extends TestCase
+final class RecordExistsTest extends TestCase
 {
     /**
      * Return a Mock object for a Db result with rows

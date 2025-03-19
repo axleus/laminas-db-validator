@@ -6,7 +6,7 @@ namespace Laminas\Db\Validator;
 
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
-class Module
+final class Module
 {
     /**
      * Return default laminas-db-validator configuration.

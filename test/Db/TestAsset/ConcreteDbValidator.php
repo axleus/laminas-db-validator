@@ -4,7 +4,7 @@ namespace LaminasTest\Db\Validator\TestAsset;
 
 use Laminas\Db\Validator\AbstractDbValidator;
 
-class ConcreteDbValidator extends AbstractDbValidator
+final class ConcreteDbValidator extends AbstractDbValidator
 {
     public const FOO_MESSAGE = 'fooMessage';
     public const BAR_MESSAGE = 'barMessage';
@@ -19,6 +19,7 @@ class ConcreteDbValidator extends AbstractDbValidator
      * @param mixed $value
      * @return bool
      */
+    #[\Override]
     public function isValid(mixed $value): bool
     {
         $this->setValue($value);

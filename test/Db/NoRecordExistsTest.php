@@ -19,7 +19,7 @@ use TypeError;
 /**
  * @group      Laminas_Validator
  */
-class NoRecordExistsTest extends TestCase
+final class NoRecordExistsTest extends TestCase
 {
     /**
      * Return a Mock object for a Db result with rows

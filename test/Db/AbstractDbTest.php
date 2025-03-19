@@ -14,11 +14,12 @@ use PHPUnit\Framework\TestCase;
 /**
  * @group      Laminas_Validator
  */
-class AbstractDbTest extends TestCase
+final class AbstractDbTest extends TestCase
 {
     /** @var AbstractDbValidator */
     protected AbstractDbValidator $validator;
 
+    #[\Override]
     protected function setUp(): void
     {
         $this->validator = new ConcreteDbValidator([
