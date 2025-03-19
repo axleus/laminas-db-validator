@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LaminasTest\Db\Validator;
 
 use ArrayObject;
@@ -34,7 +36,6 @@ final class RecordExistsTest extends TestCase
      * @throws Exception
      * @throws Exception
      * @throws Exception
-     * @return Adapter
      */
     protected function getMockHasResult(): Adapter
     {
@@ -42,7 +43,7 @@ final class RecordExistsTest extends TestCase
         $mockConnection = $this->createMock(ConnectionInterface::class);
 
         // Mock has result
-        $mockHasResultRow      = new ArrayObject(['one' => 'one']);
+        $mockHasResultRow = new ArrayObject(['one' => 'one']);
 
         $mockHasResult = $this->createMock(ResultInterface::class);
         $mockHasResult
@@ -77,7 +78,6 @@ final class RecordExistsTest extends TestCase
      * @throws Exception
      * @throws Exception
      * @throws Exception
-     * @return Adapter
      */
     protected function getMockNoResult(): Adapter
     {
@@ -230,10 +230,10 @@ final class RecordExistsTest extends TestCase
     public function testExcludeWithStringNoRecord()
     {
         $validator = new RecordExists([
-            'table' =>'users',
-            'field' => 'field1',
+            'table'   => 'users',
+            'field'   => 'field1',
             'exclude' => 'id != 1',
-            'adapter' => $this->getMockNoResult()
+            'adapter' => $this->getMockNoResult(),
         ]);
         $this->assertFalse($validator->isValid('nosuchvalue'));
     }
@@ -245,10 +245,10 @@ final class RecordExistsTest extends TestCase
     public function testExcludeConstructor(): void
     {
         $validator = new RecordExists([
-            'table' =>'users',
-            'field' => 'field1',
+            'table'   => 'users',
+            'field'   => 'field1',
             'exclude' => 'id != 1',
-            'adapter' => $this->getMockHasResult()
+            'adapter' => $this->getMockHasResult(),
         ]);
         $this->assertTrue($validator->isValid('value3'));
     }
@@ -262,9 +262,9 @@ final class RecordExistsTest extends TestCase
     public function testThrowsExceptionWithNoAdapter()
     {
         $validator = new RecordExists([
-            'table' => 'users',
-            'field' => 'field1',
-            'exclude' => 'id != 1'
+            'table'   => 'users',
+            'field'   => 'field1',
+            'exclude' => 'id != 1',
         ]);
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('No database adapter present');
@@ -281,10 +281,10 @@ final class RecordExistsTest extends TestCase
     public function testWithSchema()
     {
         $validator = new RecordExists([
-            'table'  => 'users',
-            'schema' => 'my',
-            'field' => 'field1',
-            'adapter' => $this->getMockHasResult()
+            'table'   => 'users',
+            'schema'  => 'my',
+            'field'   => 'field1',
+            'adapter' => $this->getMockHasResult(),
         ]);
         $this->assertTrue($validator->isValid('value1'));
     }
@@ -297,10 +297,10 @@ final class RecordExistsTest extends TestCase
     public function testWithSchemaNoResult(): void
     {
         $validator = new RecordExists([
-            'table'  => 'users',
-            'schema' => 'my',
-            'field' => 'field1',
-            'adapter' => $this->getMockNoResult()
+            'table'   => 'users',
+            'schema'  => 'my',
+            'field'   => 'field1',
+            'adapter' => $this->getMockNoResult(),
         ]);
         $this->assertFalse($validator->isValid('value1'));
     }
@@ -314,10 +314,10 @@ final class RecordExistsTest extends TestCase
     public function testSelectAcknowledgesTableAndSchema(): void
     {
         $validator = new RecordExists([
-            'table'  => 'users',
-            'schema' => 'my',
-            'field' => 'field1',
-            'adapter' => $this->getMockHasResult()
+            'table'   => 'users',
+            'schema'  => 'my',
+            'field'   => 'field1',
+            'adapter' => $this->getMockHasResult(),
         ]);
         $table     = $validator->getSelect()->getRawState('table');
         $this->assertInstanceOf(TableIdentifier::class, $table);
@@ -326,12 +326,12 @@ final class RecordExistsTest extends TestCase
 
     public function testEqualsMessageTemplates(): void
     {
-        $validator        = new RecordExists([
+        $validator = new RecordExists([
             'table' => 'users',
-            'field' => 'field1'
+            'field' => 'field1',
         ]);
 
-        $reflectedClass = new ReflectionClass($validator);
+        $reflectedClass     = new ReflectionClass($validator);
         $reflectionProperty = $reflectedClass->getProperty('messageTemplates');
         /** @psalm-suppress UnusedMethodCall */
         $reflectionProperty->setAccessible(true);
@@ -352,9 +352,9 @@ final class RecordExistsTest extends TestCase
     public function testGetSelect(): void
     {
         $validator = new RecordExists([
-            'table'  => 'users',
-            'schema' => 'my',
-            'field'  => 'field1',
+            'table'   => 'users',
+            'schema'  => 'my',
+            'field'   => 'field1',
             'exclude' => [
                 'field' => 'foo',
                 'value' => 'bar',
@@ -368,8 +368,8 @@ final class RecordExistsTest extends TestCase
             $select->getSqlString(new TrustingSql92Platform())
         );
 
-        $sql        = new Sql($this->getMockHasResult());
-        $statement  = $sql->prepareStatementForSqlObject($select);
+        $sql       = new Sql($this->getMockHasResult());
+        $statement = $sql->prepareStatementForSqlObject($select);
         $this->assertNotNUll($statement);
 
         $parameters = $statement->getParameterContainer();
@@ -388,15 +388,16 @@ final class RecordExistsTest extends TestCase
     {
         $validator = new RecordExists(
             [
-                'table'  => 'users',
-                'schema' => 'my',
-                'field' => 'field1',
+                'table'   => 'users',
+                'schema'  => 'my',
+                'field'   => 'field1',
                 'exclude' => [
                     'field' => 'foo',
                     'value' => 'bar',
                 ],
-                'adapter' => $this->getMockHasResult()
-        ]);
+                'adapter' => $this->getMockHasResult(),
+            ]
+        );
         $select    = $validator->getSelect();
         $this->assertInstanceOf(Select::class, $select);
         $this->assertEquals(

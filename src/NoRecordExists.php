@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laminas\Db\Validator;
 
 use Laminas\Validator\Exception;
@@ -9,11 +11,10 @@ use Laminas\Validator\Exception;
  */
 final class NoRecordExists extends AbstractDbValidator
 {
-    /**
-     * @param mixed $value
-     * @return bool
-     */
     #[\Override]
+    /**
+     * @psalm-param 'nosuchvalue'|'value1'|'value3' $value
+     */
     public function isValid(mixed $value): bool
     {
         /*

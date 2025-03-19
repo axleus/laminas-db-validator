@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LaminasTest\Db\Validator;
 
 use Laminas\Db\Adapter\Adapter;
-use Laminas\Db\Adapter\AdapterAwareInterface;
 use Laminas\Db\Sql\Select;
 use Laminas\Db\Validator\AbstractDbValidator;
 use Laminas\Validator\Exception\InvalidArgumentException;
@@ -11,12 +12,13 @@ use LaminasTest\Db\Validator\TestAsset\ConcreteDbValidator;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 
+use function property_exists;
+
 /**
  * @group      Laminas_Validator
  */
 final class AbstractDbTest extends TestCase
 {
-    /** @var AbstractDbValidator */
     protected AbstractDbValidator $validator;
 
     #[\Override]
@@ -94,7 +96,7 @@ final class AbstractDbTest extends TestCase
      */
     public function testSetAdapterIsEquivalentToSetDbAdapter(): void
     {
-        $adapterFirst  = $this->createStub(Adapter::class);
+        $adapterFirst = $this->createStub(Adapter::class);
 
         $this->validator->setAdapter($adapterFirst);
         $this->assertTrue(property_exists($this->validator, 'adapter'));

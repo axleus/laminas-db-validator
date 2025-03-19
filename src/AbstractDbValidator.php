@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laminas\Db\Validator;
 
 use Closure;
@@ -18,9 +20,12 @@ use Laminas\Validator\Exception\InvalidArgumentException;
 use Laminas\Validator\Exception\RuntimeException;
 
 use function is_array;
+use function is_string;
+use function ucfirst;
 
 /**
  * Class for Database record validation
+ *
  * @psalm-type OptionsArgument = array{
  * adapter?: AdapterInterface,
  * select?: string|array|Select,
@@ -49,26 +54,19 @@ abstract class AbstractDbValidator extends AbstractValidator
         self::ERROR_RECORD_FOUND    => 'A record matching the input was found',
     ];
 
-    /** @var null|AdapterInterface */
     protected ?AdapterInterface $adapter = null;
 
     /**
      * Select object to use. can be set, or will be auto-generated
-     *
-     * @var null|Select
      */
     protected ?Select $select = null;
 
-    /** @var null|string */
     protected ?string $schema = null;
 
-    /** @var string */
     protected string $table = '';
 
-    /** @var string */
     protected string $field = '';
 
-    /** @var array|Closure|PredicateInterface|Where|string|null */
     protected array|Closure|PredicateInterface|Where|string|null $exclude = null;
 
     /**
@@ -106,10 +104,11 @@ abstract class AbstractDbValidator extends AbstractValidator
                     break;
 
                 case 'exclude':
-                    if (!is_array($value) &&
-                        !$value instanceof Closure &&
-                        !$value instanceof PredicateInterface &&
-                        !is_string($value)
+                    if (
+                        ! is_array($value) &&
+                        ! $value instanceof Closure &&
+                        ! $value instanceof PredicateInterface &&
+                        ! is_string($value)
                     ) {
                         throw new InvalidArgumentException(
                             'Exclude option must be a string, array, Closure or PredicateInterface object.'
@@ -120,7 +119,7 @@ abstract class AbstractDbValidator extends AbstractValidator
                     break;
 
                 case 'adapter':
-                    if (! ($value instanceof AdapterInterface)) {
+                    if (! $value instanceof AdapterInterface) {
                         throw new InvalidArgumentException('AdapterInterface not passed.');
                     }
                     unset($options[$property]);
@@ -128,7 +127,7 @@ abstract class AbstractDbValidator extends AbstractValidator
                     break;
 
                 case 'select':
-                    if (! ($value instanceof Select)) {
+                    if (! $value instanceof Select) {
                         throw new InvalidArgumentException('Select is not a valid Laminas\\Db\\Sql\\Select object.');
                     }
                     unset($options[$property]);
@@ -152,7 +151,6 @@ abstract class AbstractDbValidator extends AbstractValidator
      * Returns the set adapter
      *
      * @throws RuntimeException When no database adapter is defined.
-     * @return null|AdapterInterface
      */
     public function getAdapter(): ?AdapterInterface
     {
@@ -172,8 +170,6 @@ abstract class AbstractDbValidator extends AbstractValidator
 
     /**
      * Returns the set exclude clause
-     *
-     * @return array|Closure|PredicateInterface|Where|string|null
      */
     public function getExclude(): array|Closure|PredicateInterface|Where|string|null
     {
@@ -183,7 +179,6 @@ abstract class AbstractDbValidator extends AbstractValidator
     /**
      * Sets a new exclude clause
      *
-     * @param array|Closure|PredicateInterface|Where|string|null $exclude
      * @return $this Provides a fluent interface
      */
     public function setExclude(array|Closure|PredicateInterface|Where|string|null $exclude): self
@@ -195,8 +190,6 @@ abstract class AbstractDbValidator extends AbstractValidator
 
     /**
      * Returns the set field
-     *
-     * @return string
      */
     public function getField(): string
     {
@@ -206,19 +199,16 @@ abstract class AbstractDbValidator extends AbstractValidator
     /**
      * Sets a new field
      *
-     * @param string $field
      * @return $this
      */
     public function setField(string $field): self
     {
-        $this->field  = $field;
+        $this->field = $field;
         return $this;
     }
 
     /**
      * Returns the set table
-     *
-     * @return string
      */
     public function getTable(): string
     {
@@ -228,19 +218,16 @@ abstract class AbstractDbValidator extends AbstractValidator
     /**
      * Sets a new table
      *
-     * @param string $table
      * @return $this Provides a fluent interface
      */
     public function setTable(string $table): self
     {
-        $this->table  = $table;
+        $this->table = $table;
         return $this;
     }
 
     /**
      * Returns the set schema
-     *
-     * @return string|null
      */
     public function getSchema(): ?string
     {
@@ -250,7 +237,6 @@ abstract class AbstractDbValidator extends AbstractValidator
     /**
      * Sets a new schema
      *
-     * @param string $schema
      * @return $this Provides a fluent interface
      */
     public function setSchema(string $schema): self
@@ -309,27 +295,26 @@ abstract class AbstractDbValidator extends AbstractValidator
     /**
      * Run query and returns matches, or null if no matches are found.
      *
-     * @param string $value
      * @return mixed when matches are found.
      */
-    protected function query(string $value) : mixed
+    protected function query(string $value): mixed
     {
         if ($this->adapter === null) {
             throw new Exception\RuntimeException('No database adapter present');
         }
 
-        $sql                  = new Sql($this->adapter);
-        $statement            = $sql->prepareStatementForSqlObject($this->getSelect());
+        $sql       = new Sql($this->adapter);
+        $statement = $sql->prepareStatementForSqlObject($this->getSelect());
         if (! $statement instanceof StatementInterface) {
             throw new Exception\RuntimeException('No valid statement present');
         }
 
-        $parameters           = $statement->getParameterContainer();
+        $parameters = $statement->getParameterContainer();
         if ($parameters !== null) {
             $parameters['where1'] = $value;
         }
 
-        $result               = $statement->execute();
+        $result = $statement->execute();
         if (! $result instanceof ResultInterface) {
             throw new Exception\RuntimeException('No database adapter present');
         }

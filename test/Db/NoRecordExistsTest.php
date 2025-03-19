@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LaminasTest\Db\Validator;
 
 use ArrayObject;
@@ -25,7 +27,6 @@ final class NoRecordExistsTest extends TestCase
      * Return a Mock object for a Db result with rows
      *
      * @throws Exception
-     * @return Adapter
      */
     protected function getMockHasResult(): Adapter
     {
@@ -33,7 +34,7 @@ final class NoRecordExistsTest extends TestCase
         $mockConnection = $this->createMock(ConnectionInterface::class);
 
         // Mock has result
-        $mockHasResultRow      = new ArrayObject(['one' => 'one']);
+        $mockHasResultRow = new ArrayObject(['one' => 'one']);
 
         $mockHasResult = $this->createMock(ResultInterface::class);
         $mockHasResult
@@ -67,7 +68,6 @@ final class NoRecordExistsTest extends TestCase
      * Return a Mock object for a Db result without rows
      *
      * @throws Exception
-     * @return Adapter
      */
     protected function getMockNoResult(): Adapter
     {
@@ -117,9 +117,9 @@ final class NoRecordExistsTest extends TestCase
     public function testBasicFindsRecord()
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'field1',
-            'adapter' => $this->getMockHasResult()
+            'table'   => 'users',
+            'field'   => 'field1',
+            'adapter' => $this->getMockHasResult(),
         ]);
         $this->assertFalse($validator->isValid('value1'));
     }
@@ -135,9 +135,9 @@ final class NoRecordExistsTest extends TestCase
     public function testBasicFindsNoRecord()
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'field1',
-            'adapter' => $this->getMockNoResult()
+            'table'   => 'users',
+            'field'   => 'field1',
+            'adapter' => $this->getMockNoResult(),
         ]);
         $this->assertTrue($validator->isValid('nosuchvalue'));
     }
@@ -153,13 +153,13 @@ final class NoRecordExistsTest extends TestCase
     public function testExcludeWithArray()
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'field1',
+            'table'   => 'users',
+            'field'   => 'field1',
             'exclude' => [
                 'field' => 'id',
-                'value' => 1
+                'value' => 1,
             ],
-            'adapter' => $this->getMockHasResult()
+            'adapter' => $this->getMockHasResult(),
         ]);
         $this->assertFalse($validator->isValid('value3'));
     }
@@ -176,13 +176,13 @@ final class NoRecordExistsTest extends TestCase
     public function testExcludeWithArrayNoRecord()
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'users',
+            'table'   => 'users',
+            'field'   => 'users',
             'exclude' => [
                 'field' => 'id',
-                'value' => 1
+                'value' => 1,
             ],
-            'adapter' => $this->getMockNoResult()
+            'adapter' => $this->getMockNoResult(),
         ]);
         $this->assertTrue($validator->isValid('nosuchvalue'));
     }
@@ -199,10 +199,10 @@ final class NoRecordExistsTest extends TestCase
     public function testExcludeWithString()
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'users',
+            'table'   => 'users',
+            'field'   => 'users',
             'exclude' => 'id != 1',
-            'adapter' => $this->getMockHasResult()
+            'adapter' => $this->getMockHasResult(),
         ]);
         $this->assertFalse($validator->isValid('value3'));
     }
@@ -219,10 +219,10 @@ final class NoRecordExistsTest extends TestCase
     public function testExcludeWithStringNoRecord()
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'users',
+            'table'   => 'users',
+            'field'   => 'users',
             'exclude' => 'id != 1',
-            'adapter' => $this->getMockNoResult()
+            'adapter' => $this->getMockNoResult(),
         ]);
         $this->assertTrue($validator->isValid('nosuchvalue'));
     }
@@ -236,9 +236,9 @@ final class NoRecordExistsTest extends TestCase
     public function testThrowsExceptionWithNoAdapter()
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'users',
-            'exclude' => 'id != 1'
+            'table'   => 'users',
+            'field'   => 'users',
+            'exclude' => 'id != 1',
         ]);
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('No database adapter present');
@@ -256,10 +256,10 @@ final class NoRecordExistsTest extends TestCase
     public function testWithSchema()
     {
         $validator = new NoRecordExists([
-            'table'  => 'users',
-            'schema' => 'my',
-            'field' => 'users',
-            'adapter' => $this->getMockHasResult()
+            'table'   => 'users',
+            'schema'  => 'my',
+            'field'   => 'users',
+            'adapter' => $this->getMockHasResult(),
         ]);
         $this->assertFalse($validator->isValid('value1'));
     }
@@ -275,22 +275,22 @@ final class NoRecordExistsTest extends TestCase
     public function testWithSchemaNoResult()
     {
         $validator = new NoRecordExists([
-            'table'  => 'users',
-            'schema' => 'my',
-            'field' => 'users',
-            'adapter' => $this->getMockNoResult()
+            'table'   => 'users',
+            'schema'  => 'my',
+            'field'   => 'users',
+            'adapter' => $this->getMockNoResult(),
         ]);
         $this->assertTrue($validator->isValid('value1'));
     }
 
     public function testEqualsMessageTemplates(): void
     {
-        $validator        = new NoRecordExists([
+        $validator = new NoRecordExists([
             'table' => 'users',
-            'field' => 'field1'
+            'field' => 'field1',
         ]);
 
-        $reflectedClass = new ReflectionClass($validator);
+        $reflectedClass     = new ReflectionClass($validator);
         $reflectionProperty = $reflectedClass->getProperty('messageTemplates');
         /** @psalm-suppress UnusedMethodCall */
         $reflectionProperty->setAccessible(true);
