@@ -12,7 +12,7 @@ use Laminas\Db\Adapter\Driver\ResultInterface;
 use Laminas\Db\Adapter\Driver\StatementInterface;
 use Laminas\Db\Adapter\ParameterContainer;
 use Laminas\Db\Validator\NoRecordExists;
-use Laminas\Validator\Exception\RuntimeException;
+use Laminas\Validator\Exception\InvalidArgumentException;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -23,6 +23,16 @@ use TypeError;
  */
 final class NoRecordExistsTest extends TestCase
 {
+    protected function getMockAdapter(): Adapter
+    {
+        $mockDriver = $this->createMock(DriverInterface::class);
+
+        return $this->getMockBuilder(Adapter::class)
+            ->setConstructorArgs([$mockDriver])
+            ->onlyMethods([])
+            ->getMock();
+    }
+
     /**
      * Return a Mock object for a Db result with rows
      *
@@ -235,13 +245,14 @@ final class NoRecordExistsTest extends TestCase
      */
     public function testThrowsExceptionWithNoAdapter()
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Adapter option missing.');
+        /** @psalm-suppress InvalidArgument */
         $validator = new NoRecordExists([
             'table'   => 'users',
             'field'   => 'users',
             'exclude' => 'id != 1',
         ]);
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('No database adapter present');
         $validator->isValid('nosuchvalue');
     }
 
@@ -286,8 +297,9 @@ final class NoRecordExistsTest extends TestCase
     public function testEqualsMessageTemplates(): void
     {
         $validator = new NoRecordExists([
-            'table' => 'users',
-            'field' => 'field1',
+            'adapter' => $this->getMockAdapter(),
+            'table'   => 'users',
+            'field'   => 'field1',
         ]);
 
         $reflectedClass     = new ReflectionClass($validator);

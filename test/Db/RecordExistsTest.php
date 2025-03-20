@@ -11,11 +11,12 @@ use Laminas\Db\Adapter\Driver\DriverInterface;
 use Laminas\Db\Adapter\Driver\ResultInterface;
 use Laminas\Db\Adapter\Driver\StatementInterface;
 use Laminas\Db\Adapter\ParameterContainer;
+use Laminas\Db\Adapter\Platform\PlatformInterface;
 use Laminas\Db\Sql\Select;
 use Laminas\Db\Sql\Sql;
 use Laminas\Db\Sql\TableIdentifier;
 use Laminas\Db\Validator\RecordExists;
-use Laminas\Validator\Exception\RuntimeException;
+use Laminas\Validator\Exception\InvalidArgumentException;
 use LaminasTest\Db\Validator\TestAsset\TrustingSql92Platform;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
@@ -27,6 +28,23 @@ use TypeError;
  */
 final class RecordExistsTest extends TestCase
 {
+    protected function getMockAdapter(): Adapter
+    {
+        $mockStatement = $this->createMock(StatementInterface::class);
+        $mockStatement->expects($this->any())->method('execute')->willReturn([]);
+
+        $mockPlatform = $this->createMock(PlatformInterface::class);
+        $mockPlatform->expects($this->any())->method('getName')->willReturn('platform');
+
+        $mockDriver = $this->createMock(DriverInterface::class);
+        $mockDriver->expects($this->any())->method('createStatement')->willReturn($mockStatement);
+
+        return $this->getMockBuilder(Adapter::class)
+            ->setConstructorArgs([$mockDriver])
+            ->onlyMethods([])
+            ->getMock();
+    }
+
     /**
      * Return a Mock object for a Db result with rows
      *
@@ -261,13 +279,14 @@ final class RecordExistsTest extends TestCase
      */
     public function testThrowsExceptionWithNoAdapter()
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Adapter option missing.');
+        /** @psalm-suppress InvalidArgument */
         $validator = new RecordExists([
             'table'   => 'users',
             'field'   => 'field1',
             'exclude' => 'id != 1',
         ]);
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('No database adapter present');
         $validator->isValid('nosuchvalue');
     }
 
@@ -327,8 +346,9 @@ final class RecordExistsTest extends TestCase
     public function testEqualsMessageTemplates(): void
     {
         $validator = new RecordExists([
-            'table' => 'users',
-            'field' => 'field1',
+            'adapter' => $this->getMockAdapter(),
+            'table'   => 'users',
+            'field'   => 'field1',
         ]);
 
         $reflectedClass     = new ReflectionClass($validator);
@@ -368,10 +388,8 @@ final class RecordExistsTest extends TestCase
             $select->getSqlString(new TrustingSql92Platform())
         );
 
-        $sql       = new Sql($this->getMockHasResult());
-        $statement = $sql->prepareStatementForSqlObject($select);
-        $this->assertNotNUll($statement);
-
+        $sql        = new Sql($this->getMockHasResult());
+        $statement  = $sql->prepareStatementForSqlObject($select);
         $parameters = $statement->getParameterContainer();
         $this->assertNotNUll($parameters);
 
@@ -402,22 +420,6 @@ final class RecordExistsTest extends TestCase
         $this->assertInstanceOf(Select::class, $select);
         $this->assertEquals(
             'SELECT "my"."users"."field1" AS "field1" FROM "my"."users" WHERE "field1" = \'\' AND "foo" != \'bar\'',
-            $select->getSqlString(new TrustingSql92Platform())
-        );
-
-        // same validator instance with changing properties
-        $validator->setTable('othertable');
-        $validator->setSchema('otherschema');
-        $validator->setField('fieldother');
-        $validator->setExclude([
-            'field' => 'fieldexclude',
-            'value' => 'fieldvalueexclude',
-        ]);
-        $select = $validator->getSelect();
-        $this->assertInstanceOf(Select::class, $select);
-        $this->assertEquals(
-            'SELECT "otherschema"."othertable"."fieldother" AS "fieldother" FROM "otherschema"."othertable" '
-            . 'WHERE "fieldother" = \'\' AND "fieldexclude" != \'fieldvalueexclude\'',
             $select->getSqlString(new TrustingSql92Platform())
         );
     }

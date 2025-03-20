@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace Laminas\Db\Validator;
 
 use Laminas\Validator\Exception;
+use Override;
 
 /**
  * Confirms a record does not exist in a table.
  */
 final class NoRecordExists extends AbstractDbValidator
 {
-    #[\Override]
-    /**
-     * @psalm-param 'nosuchvalue'|'value1'|'value3' $value
-     */
+    #[Override]
     public function isValid(mixed $value): bool
     {
         /*
@@ -27,7 +25,7 @@ final class NoRecordExists extends AbstractDbValidator
         $valid = true;
         $this->setValue($value);
 
-        $result = $this->query((string) $value);
+        $result = $this->query($value);
         if ($result !== null) {
             $valid = false;
             $this->error(self::ERROR_RECORD_FOUND);

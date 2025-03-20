@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LaminasTest\Db\Validator\TestAsset;
 
 use Laminas\Db\Validator\AbstractDbValidator;
+use Override;
 
 final class ConcreteDbValidator extends AbstractDbValidator
 {
@@ -17,7 +18,7 @@ final class ConcreteDbValidator extends AbstractDbValidator
         'barMessage' => '%value% was wrong',
     ];
 
-    #[\Override]
+    #[Override]
     public function isValid(mixed $value): bool
     {
         $this->setValue($value);
