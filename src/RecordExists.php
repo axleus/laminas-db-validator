@@ -1,19 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laminas\Db\Validator;
 
 use Laminas\Validator\Exception;
+use Override;
 
 /**
  * Confirms a record exists in a table.
  */
 final class RecordExists extends AbstractDbValidator
 {
-    /**
-     *
-     * @param mixed $value
-     * @return bool
-     */
+    #[Override]
     public function isValid(mixed $value): bool
     {
         /*
@@ -26,7 +25,7 @@ final class RecordExists extends AbstractDbValidator
         $valid = true;
         $this->setValue($value);
 
-        $result = $this->query((string) $value);
+        $result = $this->query($value);
         if (! $result) {
             $valid = false;
             $this->error(self::ERROR_NO_RECORD_FOUND);

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LaminasTest\Db\Validator\TestAsset;
 
 use Laminas\Db\Validator\AbstractDbValidator;
+use Override;
 
-class ConcreteDbValidator extends AbstractDbValidator
+final class ConcreteDbValidator extends AbstractDbValidator
 {
     public const FOO_MESSAGE = 'fooMessage';
     public const BAR_MESSAGE = 'barMessage';
@@ -15,10 +18,7 @@ class ConcreteDbValidator extends AbstractDbValidator
         'barMessage' => '%value% was wrong',
     ];
 
-    /**
-     * @param mixed $value
-     * @return bool
-     */
+    #[Override]
     public function isValid(mixed $value): bool
     {
         $this->setValue($value);

@@ -6,7 +6,7 @@ namespace Laminas\Db\Validator;
 
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
-class Module
+final class Module
 {
     /**
      * Return default laminas-db-validator configuration.
@@ -18,18 +18,18 @@ class Module
         return [
             'validators' => [
                 'factories' => [
-                    RecordExists::class => InvokableFactory::class,
+                    RecordExists::class   => InvokableFactory::class,
                     NoRecordExists::class => InvokableFactory::class,
                 ],
                 'aliases'   => [
-                    'dbnorecordexists'       => NoRecordExists::class,
-                    'dbNoRecordExists'       => NoRecordExists::class,
-                    'DbNoRecordExists'       => NoRecordExists::class,
-                    'dbrecordexists'         => RecordExists::class,
-                    'dbRecordExists'         => RecordExists::class,
-                    'DbRecordExists'         => RecordExists::class,
+                    'dbnorecordexists' => NoRecordExists::class,
+                    'dbNoRecordExists' => NoRecordExists::class,
+                    'DbNoRecordExists' => NoRecordExists::class,
+                    'dbrecordexists'   => RecordExists::class,
+                    'dbRecordExists'   => RecordExists::class,
+                    'DbRecordExists'   => RecordExists::class,
                 ],
-            ]
+            ],
         ];
     }
 }

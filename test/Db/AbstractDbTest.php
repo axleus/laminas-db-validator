@@ -1,30 +1,60 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LaminasTest\Db\Validator;
 
 use Laminas\Db\Adapter\Adapter;
-use Laminas\Db\Adapter\AdapterAwareInterface;
-use Laminas\Db\Sql\Select;
+use Laminas\Db\Adapter\Driver\ConnectionInterface;
+use Laminas\Db\Adapter\Driver\DriverInterface;
+use Laminas\Db\Adapter\Driver\StatementInterface;
+use Laminas\Db\Adapter\ParameterContainer;
 use Laminas\Db\Validator\AbstractDbValidator;
 use Laminas\Validator\Exception\InvalidArgumentException;
 use LaminasTest\Db\Validator\TestAsset\ConcreteDbValidator;
-use PHPUnit\Framework\MockObject\Exception;
+use Override;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @group      Laminas_Validator
  */
-class AbstractDbTest extends TestCase
+final class AbstractDbTest extends TestCase
 {
-    /** @var AbstractDbValidator */
+    protected Adapter $adapter;
     protected AbstractDbValidator $validator;
 
+    #[Override]
     protected function setUp(): void
     {
+        $mockConnection = $this->createMock(ConnectionInterface::class);
+
+        $mockStatement = $this->createMock(StatementInterface::class);
+        $mockStatement
+            ->method('execute')
+            ->willReturn([]);
+
+        $mockStatement
+            ->method('getParameterContainer')
+            ->willReturn(new ParameterContainer());
+
+        $mockDriver = $this->createMock(DriverInterface::class);
+        $mockDriver
+            ->method('createStatement')
+            ->willReturn($mockStatement);
+        $mockDriver
+            ->method('getConnection')
+            ->willReturn($mockConnection);
+
+        $this->adapter = $this->getMockBuilder(Adapter::class)
+            ->setConstructorArgs([$mockDriver])
+            ->onlyMethods([])
+            ->getMock();
+
         $this->validator = new ConcreteDbValidator([
-            'table'  => 'table',
-            'field'  => 'field',
-            'schema' => 'schema',
+            'adapter' => $this->adapter,
+            'table'   => 'table',
+            'field'   => 'field',
+            'schema'  => 'schema',
         ]);
     }
 
@@ -33,7 +63,8 @@ class AbstractDbTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Table or Schema option missing.');
         $this->validator = new ConcreteDbValidator([
-            'field' => 'field',
+            'adapter' => $this->adapter,
+            'field'   => 'field',
         ]);
     }
 
@@ -42,61 +73,68 @@ class AbstractDbTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Field option missing.');
         new ConcreteDbValidator([
-            'schema' => 'schema',
-            'table'  => 'table',
+            'adapter' => $this->adapter,
+            'schema'  => 'schema',
+            'table'   => 'table',
         ]);
-    }
-
-    public function testSetSelect(): void
-    {
-        $select = new Select();
-        $this->validator->setSelect($select);
-
-        $this->assertSame($select, $this->validator->getSelect());
     }
 
     public function testGetSchema(): void
     {
-        $schema = 'test_db';
-        $this->validator->setSchema($schema);
+        $schema          = 'test_db';
+        $this->validator = new ConcreteDbValidator([
+            'adapter' => $this->adapter,
+            'field'   => 'field',
+            'schema'  => $schema,
+        ]);
 
         $this->assertEquals($schema, $this->validator->getSchema());
     }
 
     public function testGetTable(): void
     {
-        $table = 'test_table';
-        $this->validator->setTable($table);
+        $table           = 'test_table';
+        $this->validator = new ConcreteDbValidator([
+            'adapter' => $this->adapter,
+            'field'   => 'field',
+            'table'   => $table,
+        ]);
 
         $this->assertEquals($table, $this->validator->getTable());
     }
 
     public function testGetField(): void
     {
-        $field = 'test_field';
-        $this->validator->setField($field);
+        $field           = 'test_field';
+        $this->validator = new ConcreteDbValidator([
+            'adapter' => $this->adapter,
+            'table'   => 'test_table',
+            'field'   => $field,
+        ]);
 
         $this->assertEquals($field, $this->validator->getField());
     }
 
     public function testGetExclude(): void
     {
-        $field = 'test_field';
-        $this->validator->setField($field);
+        $exclude         = 'foo = "bar"';
+        $this->validator = new ConcreteDbValidator([
+            'adapter' => $this->adapter,
+            'table'   => 'test_table',
+            'field'   => 'field',
+            'exclude' => $exclude,
+        ]);
 
-        $this->assertEquals($field, $this->validator->getField());
-    }
+        $this->assertEquals($exclude, $this->validator->getExclude());
 
-    /**
-     * @group #46
-     * @throws Exception
-     */
-    public function testSetAdapterIsEquivalentToSetDbAdapter(): void
-    {
-        $adapterFirst  = $this->createStub(Adapter::class);
+        $exclude         = ['field' => 'foo', 'value' => 'bar'];
+        $this->validator = new ConcreteDbValidator([
+            'adapter' => $this->adapter,
+            'table'   => 'test_table',
+            'field'   => 'field',
+            'exclude' => $exclude,
+        ]);
 
-        $this->validator->setAdapter($adapterFirst);
-        $this->assertTrue(property_exists($this->validator, 'adapter'));
-        $this->assertEquals($adapterFirst, $this->validator->getAdapter());
+        $this->assertEquals($exclude, $this->validator->getExclude());
     }
 }

@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laminas\Db\Validator;
 
 use Closure;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\Db\Adapter\AdapterAwareInterface;
+use Laminas\Db\Adapter\AdapterAwareTrait;
 use Laminas\Db\Adapter\AdapterInterface;
-use Laminas\Db\Adapter\Driver\ResultInterface;
 use Laminas\Db\Adapter\Driver\StatementInterface;
 use Laminas\Db\Sql\Predicate\PredicateInterface;
 use Laminas\Db\Sql\Select;
@@ -18,11 +22,13 @@ use Laminas\Validator\Exception\InvalidArgumentException;
 use Laminas\Validator\Exception\RuntimeException;
 
 use function is_array;
+use function is_scalar;
 
 /**
  * Class for Database record validation
+ *
  * @psalm-type OptionsArgument = array{
- * adapter?: AdapterInterface,
+ * adapter: Adapter,
  * select?: string|array|Select,
  * table?: string,
  * schema?: string,
@@ -35,8 +41,10 @@ use function is_array;
  * valueObscured?: bool,
  * }
  */
-abstract class AbstractDbValidator extends AbstractValidator
+abstract class AbstractDbValidator extends AbstractValidator implements AdapterAwareInterface
 {
+    use AdapterAwareTrait;
+
     /**
      * Error constants
      */
@@ -49,27 +57,18 @@ abstract class AbstractDbValidator extends AbstractValidator
         self::ERROR_RECORD_FOUND    => 'A record matching the input was found',
     ];
 
-    /** @var null|AdapterInterface */
-    protected ?AdapterInterface $adapter = null;
-
     /**
      * Select object to use. can be set, or will be auto-generated
-     *
-     * @var null|Select
      */
     protected ?Select $select = null;
 
-    /** @var null|string */
     protected ?string $schema = null;
 
-    /** @var string */
-    protected string $table = '';
+    protected string $table;
 
-    /** @var string */
-    protected string $field = '';
+    protected string $field;
 
-    /** @var array|Closure|PredicateInterface|Where|string|null */
-    protected array|Closure|PredicateInterface|Where|string|null $exclude = null;
+    protected array|Closure|PredicateInterface|Where|string|null $exclude;
 
     /**
      * Provides basic configuration for use with Laminas\Validator\Db Validators
@@ -86,62 +85,37 @@ abstract class AbstractDbValidator extends AbstractValidator
      * @param OptionsArgument $options = []
      * @throws InvalidArgumentException
      */
-    public function __construct(array $options = [])
+    public function __construct(array $options)
     {
-        foreach ($options as $property => $value) {
-            switch ($property) {
-                case 'table':
-                case 'schema':
-                    unset($options[$property]);
-                    $method = 'set' . ucfirst($property);
-                    $this->$method($value);
-                    break;
-
-                case 'field':
-                    if (! is_string($value)) {
-                        throw new InvalidArgumentException('Field option must be a string or array.');
-                    }
-                    unset($options[$property]);
-                    $this->setField($value);
-                    break;
-
-                case 'exclude':
-                    if (!is_array($value) &&
-                        !$value instanceof Closure &&
-                        !$value instanceof PredicateInterface &&
-                        !is_string($value)
-                    ) {
-                        throw new InvalidArgumentException(
-                            'Exclude option must be a string, array, Closure or PredicateInterface object.'
-                        );
-                    }
-                    unset($options[$property]);
-                    $this->setExclude($value);
-                    break;
-
-                case 'adapter':
-                    if (! ($value instanceof AdapterInterface)) {
-                        throw new InvalidArgumentException('AdapterInterface not passed.');
-                    }
-                    unset($options[$property]);
-                    $this->setAdapter($value);
-                    break;
-
-                case 'select':
-                    if (! ($value instanceof Select)) {
-                        throw new InvalidArgumentException('Select is not a valid Laminas\\Db\\Sql\\Select object.');
-                    }
-                    unset($options[$property]);
-                    $this->setSelect($value);
-                    break;
-            }
+        if (! isset($options['adapter'])) {
+            throw new Exception\InvalidArgumentException('Adapter option missing.');
         }
 
-        if ($this->getTable() === '' && $this->getSchema() === null) {
+        $this->adapter = $options['adapter'];
+        unset($options['adapter']);
+
+        $this->table = $options['table'] ?? '';
+        unset($options['table']);
+
+        $this->schema = $options['schema'] ?? null;
+        unset($options['schema']);
+
+        $this->field = $options['field'] ?? '';
+        unset($options['field']);
+
+        $this->exclude = $options['exclude'] ?? null;
+        unset($options['exclude']);
+
+        if (isset($options['select']) && $options['select'] instanceof Select) {
+            $this->select = $options['select'];
+            unset($options['select']);
+        }
+
+        if ($this->table === '' && $this->schema === null) {
             throw new Exception\InvalidArgumentException('Table or Schema option missing.');
         }
 
-        if ($this->getField() === '') {
+        if ($this->field === '') {
             throw new Exception\InvalidArgumentException('Field option missing.');
         }
 
@@ -152,7 +126,6 @@ abstract class AbstractDbValidator extends AbstractValidator
      * Returns the set adapter
      *
      * @throws RuntimeException When no database adapter is defined.
-     * @return null|AdapterInterface
      */
     public function getAdapter(): ?AdapterInterface
     {
@@ -160,20 +133,7 @@ abstract class AbstractDbValidator extends AbstractValidator
     }
 
     /**
-     * Sets a new database adapter
-     *
-     * @return self Provides a fluent interface
-     */
-    public function setAdapter(AdapterInterface $adapter): self
-    {
-        $this->adapter = $adapter;
-        return $this;
-    }
-
-    /**
      * Returns the set exclude clause
-     *
-     * @return array|Closure|PredicateInterface|Where|string|null
      */
     public function getExclude(): array|Closure|PredicateInterface|Where|string|null
     {
@@ -181,22 +141,7 @@ abstract class AbstractDbValidator extends AbstractValidator
     }
 
     /**
-     * Sets a new exclude clause
-     *
-     * @param array|Closure|PredicateInterface|Where|string|null $exclude
-     * @return $this Provides a fluent interface
-     */
-    public function setExclude(array|Closure|PredicateInterface|Where|string|null $exclude): self
-    {
-        $this->exclude = $exclude;
-        $this->select  = null;
-        return $this;
-    }
-
-    /**
      * Returns the set field
-     *
-     * @return string
      */
     public function getField(): string
     {
@@ -204,21 +149,7 @@ abstract class AbstractDbValidator extends AbstractValidator
     }
 
     /**
-     * Sets a new field
-     *
-     * @param string $field
-     * @return $this
-     */
-    public function setField(string $field): self
-    {
-        $this->field  = $field;
-        return $this;
-    }
-
-    /**
      * Returns the set table
-     *
-     * @return string
      */
     public function getTable(): string
     {
@@ -226,49 +157,11 @@ abstract class AbstractDbValidator extends AbstractValidator
     }
 
     /**
-     * Sets a new table
-     *
-     * @param string $table
-     * @return $this Provides a fluent interface
-     */
-    public function setTable(string $table): self
-    {
-        $this->table  = $table;
-        return $this;
-    }
-
-    /**
      * Returns the set schema
-     *
-     * @return string|null
      */
     public function getSchema(): ?string
     {
         return $this->schema;
-    }
-
-    /**
-     * Sets a new schema
-     *
-     * @param string $schema
-     * @return $this Provides a fluent interface
-     */
-    public function setSchema(string $schema): self
-    {
-        $this->schema = $schema;
-        $this->select = null;
-        return $this;
-    }
-
-    /**
-     * Sets the select object to be used by the validator
-     *
-     * @return $this Provides a fluent interface
-     */
-    public function setSelect(Select $select): self
-    {
-        $this->select = $select;
-        return $this;
     }
 
     /**
@@ -309,30 +202,25 @@ abstract class AbstractDbValidator extends AbstractValidator
     /**
      * Run query and returns matches, or null if no matches are found.
      *
-     * @param string $value
      * @return mixed when matches are found.
      */
-    protected function query(string $value) : mixed
+    protected function query(mixed $value): mixed
     {
-        if ($this->adapter === null) {
-            throw new Exception\RuntimeException('No database adapter present');
-        }
-
-        $sql                  = new Sql($this->adapter);
-        $statement            = $sql->prepareStatementForSqlObject($this->getSelect());
+        $sql       = new Sql($this->adapter);
+        $statement = $sql->prepareStatementForSqlObject($this->getSelect());
         if (! $statement instanceof StatementInterface) {
             throw new Exception\RuntimeException('No valid statement present');
         }
 
-        $parameters           = $statement->getParameterContainer();
+        $parameters = $statement->getParameterContainer();
         if ($parameters !== null) {
+            if (! is_scalar($value) && $value !== null) {
+                throw new Exception\InvalidArgumentException('Value must be string, integer or null');
+            }
             $parameters['where1'] = $value;
         }
 
-        $result               = $statement->execute();
-        if (! $result instanceof ResultInterface) {
-            throw new Exception\RuntimeException('No database adapter present');
-        }
+        $result = $statement->execute();
 
         return $result->current();
     }
